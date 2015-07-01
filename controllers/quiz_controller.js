@@ -1,5 +1,5 @@
 var models = require('../models/models.js');
-
+//var errores = new Array();
 // Autoload - factorize if route include :quizId
 exports.load = function(req, res, next, quizId) {
   models.Quiz.find(quizId).then(
@@ -26,14 +26,14 @@ exports.index = function(req, res) {
   }
 
   models.Quiz.findAll(filter).then(function(quizes) {
-    res.render('quizes/index.ejs', { quizes: quizes});
+    res.render('quizes/index.ejs', { quizes: quizes, errors: []});
   }).catch(function(error) { next(error);})
 };
 
 // GET /quizes/:id         --is the request
 exports.show = function(req, res) {
   models.Quiz.find(req.params.quizId).then(function(quiz) {
-    res.render('quizes/show', { quiz: req.quiz});
+    res.render('quizes/show', { quiz: req.quiz, errors: []});
   })
 };
 
@@ -43,19 +43,31 @@ exports.answer = function(req, res) {
   if (req.query.respuesta === req.quiz.respuesta) {
     resultado = 'Correcto';
   }
-  res.render('quizes/answer', {quiz: req.quiz, respuesta: resultado});
+  res.render('quizes/answer', {quiz: req.quiz, respuesta: resultado, errors: []});
 };
 
 // GET /quizes/new         --is empty
 exports.new = function(req, res) {
   var quiz = models.Quiz.build(
           {pregunta: 'Pregunta', respuesta: 'Respuesta'});
-  res.render('quizes/new', {quiz: quiz});
+  res.render('quizes/new', {quiz: quiz, errors: []});
 };
 
+// POST /quizes/create     -- create new question
 exports.create = function(req, res) {
   var quiz = models.Quiz.build( req.body.quiz);
-  quiz.save({ fields: ['pregunta', 'respuesta'] }).then(function(){
-    res.redirect('/quizes');
-  })
+  var errors = quiz.validate();
+  var errores = new Array();
+  if(errors){
+    var i=0;
+    for( var prop in errors){
+      errores[i++]={message: errors[prop]}; 
+    }
+    res.render('quizes/new', {quiz: quiz, errors: errores});    
+  }else{
+     quiz
+      .save({ fields: ['pregunta', 'respuesta'] })
+      .then(function(){ res.redirect('/quizes') })
+
+  }
 };
