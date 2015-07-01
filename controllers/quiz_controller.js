@@ -12,10 +12,21 @@ exports.load = function(req, res, next, quizId) {
   ).catch(function(error) { next(error);});
 };
 
-// GET /quizes    --is the list
+// GET /quizes    --is the list or filtered list
 exports.index = function(req, res) {
-  models.Quiz.findAll().then(function(quizes) {
-    res.render('quizes/index', { quizes: quizes});
+  var filter = {};
+  if(req.query.search){
+    search = req.query.search;
+    search = search.split(" ").join("%");
+    search = "%" + search + "%";
+    filter = {
+      where: ["lower(pregunta) like lower(?)", search],
+      order: [["pregunta", "ASC"]]
+    };
+  }
+
+  models.Quiz.findAll(filter).then(function(quizes) {
+    res.render('quizes/index.ejs', { quizes: quizes});
   }).catch(function(error) { next(error);})
 };
 
