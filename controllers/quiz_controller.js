@@ -71,3 +71,30 @@ exports.create = function(req, res) {
 
   }
 };
+
+// GET /quizes/:id/edit    --edit quiz
+exports.edit = function(req, res) {
+  var quiz = req.quiz;
+  res.render('quizes/edit', {quiz: quiz, errors: []});
+};
+
+// PUT /quizes/:id         -- update DB
+exports.update = function(req, res) {
+  req.quiz.pregunta = req.body.quiz.pregunta;
+  req.quiz.respuesta = req.body.quiz.respuesta;
+
+  var errors = req.quiz.validate();
+  var errores = new Array();
+  if(errors){
+    var i=0;
+    for( var prop in errors){
+      errores[i++]={message: errors[prop]}; 
+    }
+    res.render('quizes/edit', {quiz: req.quiz, errors: errores});    
+  }else{
+     req.quiz
+      .save({ fields: ['pregunta', 'respuesta'] })
+      .then(function(){ res.redirect('/quizes') })
+
+  }
+};
