@@ -10,8 +10,10 @@ router.get('/', function(req, res) {
 });
 
 // Autoload :quizId
-router.param('quizId', quizController.load);  // autoload :quizId
+router.param('quizId',    quizController.load);
 
+// Autoload :commentId
+router.param('commentId', commentController.load);
 // Routes definition of login
 router.get('/login',                       sessionController.new);
 router.post('/login',                      sessionController.create);
@@ -30,6 +32,8 @@ router.delete('/quizes/:quizId(\\d+)',     sessionController.loginRequired, quiz
 // Routes definition of comments
 router.get('/quizes/:quizId(\\d+)/comments/new',   commentController.new);
 router.post('/quizes/:quizId(\\d+)/comments',     commentController.create);
+router.get('/quizes/:quizId(\\d+)/comments/:commentId(\\d+)/publish',
+				 sessionController.loginRequired, commentController.publish);
 
 router.get('/author', function(req, res) {
 	res.render('abouts/author', { author: 'seLu Ferrando', errors: []});
