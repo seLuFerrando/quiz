@@ -1,6 +1,6 @@
 var models = require('../models/models.js');
 
-// Autoload :id de comentarios
+// // Autoload - factorize if route include :commentId
 exports.load = function(req, res, next, commentId) {
   models.Comment.find({
             where: {

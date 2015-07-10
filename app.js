@@ -7,11 +7,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var session = require('express-session');
-
 var routes = require('./routes/index');
-
 var app = express();
-//var errores = new Array();
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -26,15 +24,31 @@ app.use(bodyParser.urlencoded({}));
 app.use(cookieParser('Quiz-2015'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
+//app.use(session({cookie:{maxAge:120000}}));
 app.use(session());
+// Auto Logout after 2 min. (120000ms) of inactivity
+app.use(function(req, res, next) {
+  if(req.session.user){
+    if((new Date()).getTime() > (req.session.timeOut + 120000)){
+      delete req.session.user;
+      delete req.session.timeOut;
+//      console.log(" - - SESSION TIMEOUT - - ");
+    }else{
+      req.session.timeOut = (new Date()).getTime();
+//      console.log(" - - SESSION TIME UPDATED - - ");
+    }
+  }
+  next();
+}); 
+
 // Helpers dinamicos:
 app.use(function(req, res, next) {
-  // guardar path en session.redir para despues de login
+  // save path in session.redir for redirect after login
   if (!req.path.match(/\/login|\/logout/)) {
     req.session.redir = req.path;
   }
 
-  // Hacer visible req.session en las vistas
+  // Make visible req.session
   res.locals.session = req.session;
   next();
 });

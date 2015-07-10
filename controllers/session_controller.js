@@ -7,7 +7,7 @@ exports.loginRequired = function(req, res, next) {
     }
 };
 
-// Get /login   -- Formulario de login
+// Get /login   -- Login form
 exports.new = function(req, res) {
     var errors = req.session.errors || {};
     req.session.errors = {};
@@ -15,7 +15,7 @@ exports.new = function(req, res) {
     res.render('sessions/new', {errors: errors});
 };
 
-// POST /login   -- Crear la sesion si usuario se autentica
+// POST /login   -- If user authenticate session and timeOut is created
 exports.create = function(req, res) {
 
     var login     = req.body.login;
@@ -24,22 +24,25 @@ exports.create = function(req, res) {
     var userController = require('./user_controller');
     userController.autenticar(login, password, function(error, user) {
 
-        if (error) {  // si hay error retornamos mensajes de error de sesión
+        if (error) {  // return error messages
             req.session.errors = [{"message": 'Se ha producido un error: '+error}];
             res.redirect("/login");        
             return;
        }
 
-       // Crear req.session.user y guardar campos   id  y  username
-       // La sesión se define por la existencia de:    req.session.user
+       // session is defined in:    req.session.user
         req.session.user = {id:user.id, username:user.username};
-
-        res.redirect(req.session.redir.toString());// redirección a path anterior a login
+       // make session var for auto logout
+        req.session.timeOut = (new Date()).getTime();
+//        console.log(" - - SESSION CREATE - - ");
+        res.redirect(req.session.redir.toString());// redirect last path
     });
 };
 
-// DELETE /logout   -- Destruir sesion 
+// DELETE /logout   -- session and timeOut destroy 
 exports.destroy = function(req, res) {
     delete req.session.user;
-    res.redirect(req.session.redir.toString()); // redirect a path anterior a login
+    delete req.session.timeOut;
+//    console.log(" - - SESSION DESTROYED - - ");
+    res.redirect(req.session.redir.toString()); // redirect last path
 };

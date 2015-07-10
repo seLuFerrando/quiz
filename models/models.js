@@ -12,40 +12,39 @@ var port     = (url[5]||null);
 var host     = (url[4]||null);
 var storage  = process.env.DATABASE_STORAGE;
 
-// Cargar Modelo ORM
+// Load ORM model
 var Sequelize = require('sequelize');
 
-// Usar BBDD SQLite o Postgres
+// Use BBDD SQLite or Postgres
 var sequelize = new Sequelize(DB_name, user, pwd, 
   { dialect:  protocol,
     protocol: protocol,
     port:     port,
     host:     host,
-    storage:  storage,  // solo SQLite (.env)
-    omitNull: true      // solo Postgres
+    storage:  storage,  // only SQLite (.env)
+    omitNull: true      // only Postgres
   }      
 );
 
-// Importar definicion de la tabla Quiz
+// Import Quiz table definition
 var quiz_path = path.join(__dirname,'quiz');
 var Quiz = sequelize.import(quiz_path);
 
-// Importar definicion de la tabla Comment
+// Import Comment table definition
 var comment_path = path.join(__dirname,'comment');
 var Comment = sequelize.import(comment_path);
 
-// Relacion 1 a N
+// 1 to N relation
 Comment.belongsTo(Quiz);
 Quiz.hasMany(Comment);
 
-exports.Quiz = Quiz;       // exportar tabla Quiz
-exports.Comment = Comment; //exportar tabla Comment
+exports.Quiz = Quiz;       
+exports.Comment = Comment; 
 
-// sequelize.sync() inicializa tabla de preguntas en DB
+// sequelize.sync() for inicialitze
 sequelize.sync().then(function() {
-  // then(..) ejecuta el manejador una vez creada la tabla
   Quiz.count().then(function (count){
-    if(count === 0) {   // la tabla se inicializa solo si está vacía
+    if(count === 0) {   // inicialitze only if table is empty
       Quiz.bulkCreate( 
         [ {pregunta: 'Capital de Italia',   respuesta: 'Roma', tema: 'Humanidades'},
           {pregunta: 'Capital de Portugal', respuesta: 'Lisboa', tema: 'Humanidades'},
