@@ -36,9 +36,11 @@ exports.index = function(req, res) {
 
 // GET /quizes/:id         --is the request
 exports.show = function(req, res) {
-  models.Quiz.find(req.params.quizId).then(function(quiz) {
+  for(var ele in req.quiz){
+    console.log(' - - ' + ele + ' - - ');
+  }
+
     res.render('quizes/show', { quiz: req.quiz, errors: []});
-  })
 };
 
 // GET /quizes/:id/answer  --is the answer
@@ -60,20 +62,17 @@ exports.new = function(req, res) {
 // POST /quizes/create     -- create new question
 exports.create = function(req, res) {
   var quiz = models.Quiz.build( req.body.quiz);
-  var errors = quiz.validate();
-  var errores = new Array();
-  if(errors){
-    var i=0;
-    for( var prop in errors){
-      errores[i++]={message: errors[prop]}; 
+  quiz.validate().then(
+    function(err){
+      if (err) {
+        res.render('quizes/new', {quiz: quiz, errors: err.errors});    
+      }else{
+       quiz
+        .save({fields: ["pregunta", "respuesta"]})
+        .then( function(){ res.redirect('/quizes')}) 
+      }
     }
-    res.render('quizes/new', {quiz: quiz, errors: errores});    
-  }else{
-     quiz
-      .save({ fields: ['pregunta', 'respuesta', 'tema'] })
-      .then(function(){ res.redirect('/quizes') })
-
-  }
+  ).catch(function(error){next(error)});
 };
 
 // GET /quizes/:id/edit    --edit quiz
@@ -88,20 +87,17 @@ exports.update = function(req, res) {
   req.quiz.respuesta = req.body.quiz.respuesta;
   req.quiz.tema = req.body.quiz.tema;
 
-  var errors = req.quiz.validate();
-  var errores = new Array();
-  if(errors){
-    var i=0;
-    for( var prop in errors){
-      errores[i++]={message: errors[prop]}; 
+  req.quiz.validate().then(
+     function(err){
+      if (err) {
+        res.render('quizes/edit', {quiz: req.quiz, errors: err.errors});
+      } else {
+        req.quiz
+        .save( {fields: ["pregunta", "respuesta"]})
+        .then( function(){ res.redirect('/quizes');});
+      }
     }
-    res.render('quizes/edit', {quiz: req.quiz, errors: errores});    
-  }else{
-     req.quiz
-      .save({ fields: ['pregunta', 'respuesta', 'tema'] })
-      .then(function(){ res.redirect('/quizes') })
-
-  }
+  ).catch(function(error){next(error)});
 };
 
 // DELETE /quizes/:id       -- delete DB

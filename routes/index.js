@@ -4,16 +4,17 @@ var router = express.Router();
 var quizController = require('../controllers/quiz_controller');
 var commentController = require('../controllers/comment_controller');
 var sessionController = require('../controllers/session_controller');
+var statController = require('../controllers/statistics_controller');
 // GET home page
 router.get('/', function(req, res) {
   res.render('index', { title: 'Quiz', errors: [] });
 });
 
 // Autoload :quizId
-router.param('quizId',    quizController.load);
+router.param('quizId',                     quizController.load);
 
 // Autoload :commentId
-router.param('commentId', commentController.load);
+router.param('commentId',                  commentController.load);
 // Routes definition of login
 router.get('/login',                       sessionController.new);
 router.post('/login',                      sessionController.create);
@@ -35,6 +36,10 @@ router.post('/quizes/:quizId(\\d+)/comments',     commentController.create);
 router.get('/quizes/:quizId(\\d+)/comments/:commentId(\\d+)/publish',
 				 sessionController.loginRequired, commentController.publish);
 
+// Routes definition of statistics
+router.get('/quizes/statistics',           statController.calculate, statController.show);
+
+// Routes definition of credits
 router.get('/author', function(req, res) {
 	res.render('abouts/author', { author: 'seLu Ferrando', errors: []});
 });
